@@ -1,0 +1,62 @@
+openapi: 3.1.0
+info:
+  title: RestoreGuard API
+  version: 0.1.0
+  description: Experimental recovery assurance control-plane API. A successful drill is not a guarantee of disaster recovery.
+servers: [{url: /api/v1}]
+security: [{cookieSession: []}]
+paths:
+  /auth/login:
+    post:
+      security: []
+      summary: Create a local session
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Login'}}}}
+      responses: {'200': {description: Authenticated}, '401': {$ref: '#/components/responses/Error'}}
+  /auth/logout:
+    post: {summary: Revoke current session, responses: {'204': {description: Revoked}, '403': {$ref: '#/components/responses/Error'}}}
+  /auth/session:
+    get: {summary: Read current session, responses: {'200': {description: Session}, '401': {$ref: '#/components/responses/Error'}}}
+  /protected-assets:
+    get: {summary: List organization assets, parameters: [{$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Limit'}], responses: {'200': {description: Assets}}}
+    post: {summary: Create an organization asset, responses: {'201': {description: Created}, '400': {$ref: '#/components/responses/Error'}, '403': {$ref: '#/components/responses/Error'}}}
+  /protected-assets/{id}:
+    get: {summary: Read an organization asset, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'200': {description: Asset}, '404': {$ref: '#/components/responses/Error'}}}
+  /backup-sources:
+    get: {summary: List backup sources, responses: {'200': {description: Sources}}}
+    post: {summary: Create backup source, responses: {'201': {description: Created}, '403': {$ref: '#/components/responses/Error'}}}
+  /backup-sources/{id}/discover:
+    post: {summary: Explicitly discover snapshots, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'202': {description: Discovery accepted}, '404': {$ref: '#/components/responses/Error'}}}
+  /snapshots:
+    get: {summary: List snapshots, parameters: [{name: source, in: query, schema: {type: string, format: uuid}}, {name: status, in: query, schema: {type: string}}], responses: {'200': {description: Snapshots}}}
+  /recovery-policies:
+    get: {summary: List recovery policies, responses: {'200': {description: Policies}}}
+    post: {summary: Create recovery policy, responses: {'201': {description: Created}, '400': {$ref: '#/components/responses/Error'}}}
+  /drills:
+    get: {summary: List recovery drills, parameters: [{name: status, in: query, schema: {type: string}}, {name: asset, in: query, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Limit'}], responses: {'200': {description: Drills}}}
+    post:
+      summary: Queue an idempotent recovery drill
+      parameters: [{name: Idempotency-Key, in: header, schema: {type: string, maxLength: 100}}]
+      responses: {'202': {description: Queued or existing}, '400': {$ref: '#/components/responses/Error'}, '403': {$ref: '#/components/responses/Error'}}
+  /drills/{id}:
+    get: {summary: Read drill details, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'200': {description: Drill}, '404': {$ref: '#/components/responses/Error'}}}
+  /drills/{id}/cancel:
+    post: {summary: Cancel a running drill, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'200': {description: Cancelled}, '404': {$ref: '#/components/responses/Error'}}}
+  /drills/{id}/events:
+    get: {summary: Stream persisted drill progress hints, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'200': {description: SSE stream, content: {text/event-stream: {schema: {type: string}}}}}}
+  /drills/{id}/report:
+    get: {summary: Export private recovery verification PDF, parameters: [{$ref: '#/components/parameters/Id'}], responses: {'200': {description: Recovery Verification Report, content: {application/pdf: {schema: {type: string, contentEncoding: binary}}}}, '403': {$ref: '#/components/responses/Error'}}}
+  /evidence:
+    get: {summary: List authorized organization evidence, responses: {'200': {description: Evidence}}}
+  /audit:
+    get: {summary: List authorized audit events, responses: {'200': {description: Audit events}, '403': {$ref: '#/components/responses/Error'}}}
+components:
+  securitySchemes: {cookieSession: {type: apiKey, in: cookie, name: restoreguard_session}}
+  parameters:
+    Id: {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+    Page: {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+    Limit: {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+  responses:
+    Error: {description: Standard error, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+  schemas:
+    Login: {type: object, additionalProperties: false, required: [email, password], properties: {email: {type: string, format: email}, password: {type: string, minLength: 12, maxLength: 256}}}
+    Error: {type: object, required: [error], properties: {error: {type: object, required: [code, message, requestId], properties: {code: {type: string}, message: {type: string}, requestId: {type: string, format: uuid}}}}}

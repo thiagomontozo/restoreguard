@@ -1,0 +1,12 @@
+.git
+.env
+**/node_modules
+**/dist
+**/coverage
+**/*.log
+data
+tmp
+test-artifacts
+playwright-report
+frontend/test-results
+backend/restoreguard

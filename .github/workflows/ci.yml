@@ -34,12 +34,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U restoreguard -d restoreguard_test"
           --health-interval 2s --health-timeout 2s --health-retries 30
-      minio:
-        image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-        env: {MINIO_ROOT_USER: restoreguardtest, MINIO_ROOT_PASSWORD: restoreguard-test-minio-only}
-        ports: ['59002:9000']
-        options: >-
-          --health-cmd "mc ready local" --health-interval 2s --health-timeout 2s --health-retries 30
     env:
       RESTOREGUARD_TEST_DATABASE_URL: postgres://restoreguard:restoreguard-test-only@127.0.0.1:55433/restoreguard_test?sslmode=disable
       RESTOREGUARD_TEST_S3_ENDPOINT: 127.0.0.1:59002
@@ -47,9 +41,32 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with: {go-version: '1.26.x', cache-dependency-path: backend/go.sum}
+      - name: Start S3-compatible MinIO
+        run: |
+          docker run -d --name restoreguard-ci-minio \
+            --label com.restoreguard.managed=true \
+            --label com.restoreguard.purpose=integration \
+            -p 59002:9000 \
+            -e MINIO_ROOT_USER=restoreguardtest \
+            -e MINIO_ROOT_PASSWORD=restoreguard-test-minio-only \
+            minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
+          for _ in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:59002/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs restoreguard-ci-minio
+          exit 1
       - name: PostgreSQL and object-storage integration
         run: go test -tags=integration -timeout 5m ./internal/database ./internal/storage -v
         working-directory: backend
+      - name: Cleanup integration storage
+        if: always()
+        run: |
+          if docker inspect restoreguard-ci-minio >/dev/null 2>&1; then
+            docker rm -f -v restoreguard-ci-minio
+          fi
   recovery-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -77,7 +94,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test -- --coverage
+      - run: npm test
       - run: npm run build
   frontend-e2e:
     needs: [backend, frontend]

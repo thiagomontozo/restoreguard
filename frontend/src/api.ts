@@ -1,0 +1,5 @@
+const base=import.meta.env.VITE_API_URL??'';
+export class ApiError extends Error{constructor(public status:number,public code:string,message:string){super(message)}}
+function csrf(){return document.cookie.split('; ').find(value=>value.startsWith('restoreguard_csrf='))?.split('=')[1]??''}
+export async function api<T>(path:string,init:RequestInit={}):Promise<T>{const headers=new Headers(init.headers);if(init.body&&!headers.has('Content-Type'))headers.set('Content-Type','application/json');if(init.method&&init.method!=='GET')headers.set('X-CSRF-Token',csrf());const response=await fetch(base+path,{...init,headers,credentials:'include'});if(!response.ok){const body=await response.json().catch(()=>({error:{code:'HTTP_ERROR',message:'Request failed'}})) as {error:{code:string;message:string}};throw new ApiError(response.status,body.error.code,body.error.message)};if(response.status===204)return undefined as T;return response.json() as Promise<T>}
+export const formatDuration=(seconds?:number)=>seconds===undefined?'Inconclusive':seconds>=3600?`${(seconds/3600).toFixed(1)}h`:seconds>=60?`${Math.floor(seconds/60)}m ${seconds%60}s`:`${seconds}s`;

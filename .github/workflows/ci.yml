@@ -63,12 +63,9 @@ jobs:
       - name: Cleanup RestoreGuard Docker resources
         if: always()
         run: |
-          ids=$(docker ps -aq --filter label=com.restoreguard.managed=true)
-          test -z "$ids" || docker rm -f -v $ids
-          networks=$(docker network ls -q --filter label=com.restoreguard.managed=true)
-          test -z "$networks" || docker network rm $networks
-          volumes=$(docker volume ls -q --filter label=com.restoreguard.managed=true)
-          test -z "$volumes" || docker volume rm $volumes
+          docker ps -aq --filter label=com.restoreguard.managed=true | xargs --no-run-if-empty docker rm -f -v
+          docker network ls -q --filter label=com.restoreguard.managed=true | xargs --no-run-if-empty docker network rm
+          docker volume ls -q --filter label=com.restoreguard.managed=true | xargs --no-run-if-empty docker volume rm
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -121,4 +118,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify OpenAPI contract
-        run: grep -q 'openapi: 3.1.0' contracts/openapi.yaml && grep -q '/drills/{id}/events' contracts/openapi.yaml
+        run: |
+          grep -q 'openapi: 3.1.0' contracts/openapi.yaml
+          grep -q '/drills/{id}/events' contracts/openapi.yaml

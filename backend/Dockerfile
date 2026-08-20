@@ -11,7 +11,7 @@ COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/restoreguard ./cmd/server
 
 FROM docker:29-cli AS dockercli
-FROM alpine:3.22
+FROM alpine:3.24
 RUN addgroup -S restoreguard && adduser -S -G restoreguard restoreguard
 WORKDIR /app
 COPY --from=build /out/restoreguard /usr/local/bin/restoreguard

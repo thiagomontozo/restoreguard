@@ -1,5 +1,9 @@
 # RestoreGuard
 
+[![CI](https://github.com/thiagomontozo/restoreguard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thiagomontozo/restoreguard/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/thiagomontozo/restoreguard/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/thiagomontozo/restoreguard/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 RestoreGuard verifies that backups can actually be restored by running controlled recovery drills, validating recovered systems, measuring RPO/RTO, and preserving recovery evidence.
 
 > **Current status: Experimental.** RestoreGuard is not production-ready, compliance-certified, or a guarantee of disaster recovery. A successful controlled drill demonstrates only the tested conditions.

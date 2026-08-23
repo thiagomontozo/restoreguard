@@ -3,6 +3,12 @@
 [![CI](https://github.com/thiagomontozo/restoreguard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thiagomontozo/restoreguard/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/thiagomontozo/restoreguard/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/thiagomontozo/restoreguard/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Status: Experimental](https://img.shields.io/badge/status-experimental-f59e0b)
+![Go backend](https://img.shields.io/badge/Go-backend-00ADD8?logo=go&logoColor=white)
+![React frontend](https://img.shields.io/badge/React-frontend-61DAFB?logo=react&logoColor=0b1f2a)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-primary_store-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-containerized-2496ED?logo=docker&logoColor=white)
 
 RestoreGuard verifies that backups can actually be restored by running controlled recovery drills, validating recovered systems, measuring RPO/RTO, and preserving recovery evidence.
 

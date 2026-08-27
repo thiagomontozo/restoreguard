@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with: {go-version: '1.26.x', cache-dependency-path: backend/go.sum}
       - name: Format
@@ -38,7 +38,7 @@ jobs:
       RESTOREGUARD_TEST_DATABASE_URL: postgres://restoreguard:restoreguard-test-only@127.0.0.1:55433/restoreguard_test?sslmode=disable
       RESTOREGUARD_TEST_S3_ENDPOINT: 127.0.0.1:59002
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with: {go-version: '1.26.x', cache-dependency-path: backend/go.sum}
       - name: Start S3-compatible MinIO
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with: {go-version: '1.26.x', cache-dependency-path: backend/go.sum}
       - name: Synthetic PostgreSQL recovery E2E
@@ -88,7 +88,7 @@ jobs:
     timeout-minutes: 15
     defaults: {run: {working-directory: frontend}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: {node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json}
       - run: npm ci
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: {node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json}
       - run: npm ci
@@ -126,14 +126,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - run: docker build -f backend/Dockerfile -t restoreguard-backend:test .
       - run: docker build -f frontend/Dockerfile -t restoreguard-frontend:test .
   contract:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify OpenAPI contract
         run: |
           grep -q 'openapi: 3.1.0' contracts/openapi.yaml
